@@ -1,0 +1,9 @@
+{% if cost_list %}
+    <ul>
+    {% for el in cost_list %}
+        <li>{{ el }}</li>   
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No table are available.</p>
+{% endif %}

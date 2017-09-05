@@ -1,0 +1,22 @@
+<<h1>ФИНАНСЫ</h1>
+<a href="{% url 'table:main' %}">На главную</a></br></br>
+<a href="{% url 'table:addcost' %}">Добавить расходы</a></br></br>
+<a href="{% url 'table:typeofcost' %}">Добавить новый тип расхода</a></br></br>
+<a href="{% url 'table:costssample' %}">Сделать выборку расходов</a></br></br>
+<table border="1">
+<caption>Таблица расходов за последний месяц</caption>
+	<tr>
+		<th>Дата</th>
+		<th>Тип расхода</th>
+		<th>Сумма</th>
+		<th>Примечание</th>
+	</tr>
+	{% for cost in top_costs %}
+	<tr>
+		<td><a href="{% url 'table:getchangecost' cost.id %}">{{cost.date_buy|date:"d.m.Y"}}</a></td>
+		<td>{{cost.type_of_buy}}</td>
+		<td>{{cost.summa_buy}}</td>
+		<td>{{cost.note}}</td>
+	</tr>
+	{% endfor %} 
+</table>

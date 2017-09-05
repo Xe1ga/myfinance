@@ -1,0 +1,16 @@
+<<h1>Добавить новый тип раcхода</h1>
+<a href="{% url 'table:current_month_expenses' %}">Вернуться к финансам</a></br></br>
+<form action="" method="post">
+{% csrf_token %}
+    {{ form.as_p }}
+<input type="submit" name = "Save" value="Сохранить"> 
+<input type="button" name = "Delete" value="Удалить"> 
+</form>
+{% if all_types %}
+	<p> Типы расходов: </p>
+	{% for type in all_types %}
+		<ul>
+			<li>{{type.typeofbuy_text}}</li>
+		</ul>
+	{% endfor %}
+{% endif %}

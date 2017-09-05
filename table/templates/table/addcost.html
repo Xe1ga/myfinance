@@ -1,0 +1,7 @@
+<<h1>Информация о расходе</h1>
+<a href="{% url 'table:current_month_expenses' %}">Вернуться к финансам</a></br></br>
+<form action="" method="post">
+{% csrf_token %}
+    {{ form.as_p }}
+<input type="submit" value="Сохранить" /> 
+</form>

@@ -1,0 +1,16 @@
+
+<p><b>Дата покупки: </b><br>
+ <input type="datetime" name="html_date_buy" value = {{datebuy|date:"d/m/Y/H:m:s"}}>	
+</p>
+<p><b>Наименование покупки:</b><br>
+<p><select name="html_type_of_buy" size="3">
+    {% for cost in costs.typeofbuy_set.all %}
+        <option value= "html_type_of_buy" + str(forloop.counter)>{{costs.typeofbuy_text}}</option>
+    {% endfor %} 
+   </select>
+</p>
+<p><b>Сумма покупки:</b><br>
+ <input type="text" name = "html_summa_buy" size="40">
+ </p> 
+<p><b>Примечание:</b><Br>
+ <textarea name="html_note" cols="40" rows="3"></textarea></p>
