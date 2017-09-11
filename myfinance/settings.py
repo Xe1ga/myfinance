@@ -25,8 +25,8 @@ SECRET_KEY = 'bn6mm$%e49p+^n754y^xq-qkdnkmc7llbk3%#*!@q#v^5k%h4^'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+#ALLOWED_HOSTS = ['xe1ga.pythonanywhere.com',]
+ALLOWED_HOSTS = ['127.0.0.1',]
 
 # Application definition
 
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware' ,
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -119,3 +120,5 @@ DATE_FORMAT = ['%d.%m.%Y %H:%M:%S',]
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE  =  'whitenoise.storage.CompressedManifestStaticFilesStorage'

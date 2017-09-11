@@ -6,14 +6,42 @@ from django.core.urlresolvers import reverse
 from .models import *
 from django.utils import timezone
 from django.views import generic
-from .forms import CostsForm, InputDateForm, TypeOfCostsForm
+from .forms import CostsForm, InputDateForm, TypeOfCostsForm, LoginForm
 from datetime import date
-
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib.auth.models import User
+from django.contrib.auth import logout
 
 def main(request):
-	context = {}
+	form = LoginForm()
+	context = {'form' : form} 
 	return render(request, 'table/main.html', context)
 
+def auth_login(request):
+	username = request.POST['username']
+	password = request.POST['password']
+	user = authenticate(username=username, password=password)
+	if user is not None:
+		if user.is_active:
+			login(request, user)
+			return HttpResponseRedirect(reverse('table:main', ))
+		else:
+			form = LoginForm()
+			context = {'form' : form, 'error': "Пользователь не активен (закончился срок регистрации)"} 
+			return render(request, 'table/main.html', context)
+	else:
+		form = LoginForm()
+		context = {'form' : form, 'error': "Неверно введены имя пользователя или пароль. Попробуйте снова."} 
+		return render(request, 'table/main.html', context)
+
+def auth_logout(request):
+	logout(request)
+	return HttpResponseRedirect("/table/")    
+
+
+@login_required(login_url='/table/')
 def current_month_expenses(request):
 	current_month = timezone.now().month 
 	current_year = timezone.now().year
@@ -24,15 +52,16 @@ def current_month_expenses(request):
 	context = {'top_costs': top_costs}
 	return render(request, 'table/lastcosts.html', context)
 
-
-class AddCostView(generic.edit.CreateView): # добавление нового расхода по ссылке главного меню
+class AddCostView(LoginRequiredMixin, PermissionRequiredMixin, generic.edit.CreateView): # добавление нового расхода по ссылке главного меню
 	model = Costs
 	fields = ['date_buy', 'type_of_buy', 'summa_buy', 'note']
 	template_name = 'table/addcost.html'
+	login_url = '/table/'
+	permission_required = 'table.add_costs'
 	#url для редиректа определен в модели
 	
-
-class AddTypeOfCostView(generic.edit.CreateView): # добавление нового  типа расхода по ссылке главного меню
+#@login_required(login_url='/table/')
+class AddTypeOfCostView(LoginRequiredMixin, PermissionRequiredMixin, generic.edit.CreateView): # добавление нового  типа расхода по ссылке главного меню
 	model = Typeofbuy
 	fields = ['typeofbuy_text']
 	template_name = 'table/typeofcost.html'
@@ -40,6 +69,8 @@ class AddTypeOfCostView(generic.edit.CreateView): # добавление нов�
 		context = super(AddTypeOfCostView, self).get_context_data(**kwargs)
 		context['all_types'] = Typeofbuy.objects.order_by('typeofbuy_text')
 		return context
+	login_url = '/table/'
+	permission_required = 'table.add_typeofincome'
 	#url для редиректа определен в модели 
 
 '''def get_delete_or_change_type_of_cost(request): # изменение или удаление типа расхода 
@@ -52,6 +83,7 @@ class AddTypeOfCostView(generic.edit.CreateView): # добавление нов�
 	context = {'form' : form, 'all_types':all_types if all_types else None}
 	return render(request, 'table/typeofcost.html', context)
 '''
+@login_required(login_url='/table/')
 def get_costs_sample(request): # выборка расходов по датам
 	costs_sample_list = []
 	start_date = datetime.date(timezone.now().year,1,1)
@@ -67,6 +99,8 @@ def get_costs_sample(request): # выборка расходов по датам
 	context = {'form' : form, 'costs_sample_list': costs_sample_list if costs_sample_list else None, 'start_date':start_date, 'end_date':end_date}
 	return render(request, 'table/costssample.html', context)
 
+@permission_required('table.change_costs', login_url='/table/')
+@login_required(login_url='/table/')
 def get_change_cost(request, cost_id): # изменение конкретного существующего расхода по ссылке из таблицы
 	cost = get_object_or_404(Costs, pk = cost_id)
 	if request.method == 'POST':
