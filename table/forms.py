@@ -17,8 +17,8 @@ class CostsForm(ModelForm): #создание формы из модели
 		required_css_class = 'required'
 
 class InputDateForm(Form): # создание формы вручную
-	start_date = forms.DateTimeField(label = 'Введите начальную дату', help_text = 'гггг-мм-дд', initial = datetime.date(timezone.now().year, timezone.now().month, 1))
-	end_date = forms.DateTimeField(label = 'Введите конечную дату', help_text = 'гггг-мм-дд', initial = timezone.now())
+	from_date = forms.DateTimeField(label = 'Введите начальную дату', help_text = 'гггг-мм-дд', initial = datetime.date(timezone.now().year, timezone.now().month, 1))
+	due_date = forms.DateTimeField(label = 'Введите конечную дату', help_text = 'гггг-мм-дд', initial = timezone.now())
 	error_css_class = 'error'
 	required_css_class = 'required'
 

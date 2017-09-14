@@ -4,6 +4,7 @@ import datetime
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from .models import *
+from django.db import connection #модуль для обращения напрямую к БД
 from django.utils import timezone
 from django.views import generic
 from .forms import CostsForm, InputDateForm, TypeOfCostsForm, LoginForm
@@ -13,6 +14,11 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
+
+#Создание строки даты для запроса SQL
+def make_date_query_string(date):
+	#return "'" + unicode(date.strftime('%Y%m%d')) + "' "
+	return "'" + date.strftime('%Y-%m-%d') + "' "
 
 def main(request):
 	form = LoginForm()
@@ -42,14 +48,25 @@ def auth_logout(request):
 
 
 @login_required(login_url='/table/')
-def current_month_expenses(request):
+def current_month_expenses(request): # расходы за текущий месяц
+	current_day = timezone.now().day
 	current_month = timezone.now().month 
 	current_year = timezone.now().year
-	#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!.order_by("-date_buy")
-	#top_costs = get_list_or_404(Costs, date_buy__year = current_year, date_buy__month = current_month)
+	# запрос напрямую к БД
+	cursor = connection.cursor()
+	sql = '''
+           	SELECT SUM (summa_buy)
+            FROM table_costs
+            WHERE date_buy BETWEEN {from_date} AND {due_date}
+            '''.format(
+                from_date=make_date_query_string(datetime.date(current_year,current_month,1)),
+                due_date=make_date_query_string(datetime.date(current_year,current_month,current_day)),
+            )
+	cursor.execute(sql)
+	total_sum = cursor.fetchone()
+	# запрос через manager django
 	top_costs = Costs.objects.filter(date_buy__year = current_year, date_buy__month = current_month)
-	#cost_list = [str(el.date_buy)[:10] + " " + str(el.summa_buy) + " " + str(el.type_of_buy) for el in top_costs]
-	context = {'top_costs': top_costs}
+	context = {'top_costs': top_costs, 'total_sum' : total_sum[0]}
 	return render(request, 'table/lastcosts.html', context)
 
 class AddCostView(LoginRequiredMixin, PermissionRequiredMixin, generic.edit.CreateView): # добавление нового расхода по ссылке главного меню
@@ -86,17 +103,17 @@ class AddTypeOfCostView(LoginRequiredMixin, PermissionRequiredMixin, generic.edi
 @login_required(login_url='/table/')
 def get_costs_sample(request): # выборка расходов по датам
 	costs_sample_list = []
-	start_date = datetime.date(timezone.now().year,1,1)
-	end_date = timezone.now()
+	from_date = datetime.date(timezone.now().year,1,1)
+	due_date = timezone.now()
 	if request.method == 'POST':
 		form = InputDateForm(request.POST)
 		if form.is_valid():
-			start_date = form.cleaned_data['start_date']
-			end_date = form.cleaned_data['end_date']
-			costs_sample_list = Costs.objects.filter(date_buy__range = (start_date, end_date))
+			from_date = form.cleaned_data['from_date']
+			due_date = form.cleaned_data['due_date']
+			costs_sample_list = Costs.objects.filter(date_buy__range = (from_date, due_date))
 	else:
 		form = InputDateForm()
-	context = {'form' : form, 'costs_sample_list': costs_sample_list if costs_sample_list else None, 'start_date':start_date, 'end_date':end_date}
+	context = {'form' : form, 'costs_sample_list': costs_sample_list if costs_sample_list else None, 'from_date':from_date, 'due_date':due_date}
 	return render(request, 'table/costssample.html', context)
 
 @permission_required('table.change_costs', login_url='/table/')

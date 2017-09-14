@@ -10,8 +10,8 @@
 <a href="{% url 'table:addcost' %}">Добавить расходы</a></br></br>
 <a href="{% url 'table:typeofcost' %}">Добавить новый тип расхода</a></br></br>
 <a href="{% url 'table:costssample' %}">Сделать выборку расходов</a></br></br>
-<table border="1">
-<caption>Таблица расходов за последний месяц</caption>
+<table border="1" width="50%">
+<caption><b>Таблица расходов за последний месяц</b></caption>
 	<tr>
 		<th>Дата</th>
 		<th>Тип расхода</th>
@@ -27,3 +27,4 @@
 	</tr>
 	{% endfor %} 
 </table>
+<div><b>ИТОГО: {{total_sum}} руб.</b></div>

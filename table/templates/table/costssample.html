@@ -18,8 +18,8 @@
 <input type="submit" value="Вывести список" /> 
 </form>
 {% if costs_sample_list %}
-	<table border="1">
-	<caption>Таблица расходов за период c {{start_date|date:"d.m.Y"}} по {{end_date|date:"d.m.Y"}}</caption>
+	<table border="1" width="50%">
+	<caption><b>Таблица расходов за период c {{from_date|date:"d.m.Y"}} по {{due_date|date:"d.m.Y"}}</b></caption>
 		<tr>
 			<th>Дата</th>
 			<th>Тип расхода</th>
@@ -35,4 +35,5 @@
 		</tr>
 		{% endfor %} 
 	</table>
+	<div><b>ИТОГО: {{total_sum}} руб.</b></div>
 {% endif %}
