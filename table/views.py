@@ -53,17 +53,18 @@ def current_month_expenses(request): # расходы за текущий мес
 	current_month = timezone.now().month 
 	current_year = timezone.now().year
 	# запрос напрямую к БД
-	cursor = connection.cursor()
-	sql = '''
-           	SELECT SUM (summa_buy)
-            FROM table_costs
-            WHERE date_buy BETWEEN {from_date} AND {due_date}
-            '''.format(
-                from_date=make_date_query_string(datetime.date(current_year,current_month,1)),
-                due_date=make_date_query_string(datetime.date(current_year,current_month,current_day)),
-            )
-	cursor.execute(sql)
-	total_sum = cursor.fetchone()
+	with connection.cursor() as cursor:#используется менеджер контекста для закрытия соединения с БД без написания .close()
+		sql = '''
+		SELECT SUM (summa_buy)
+		FROM table_costs
+		WHERE date_buy BETWEEN {from_date} AND {due_date}
+		'''.format(
+			from_date=make_date_query_string(datetime.date(current_year,current_month,1)),
+			due_date=make_date_query_string(datetime.date(current_year,current_month,current_day)),
+			)
+		cursor.execute(sql)
+		total_sum = cursor.fetchone()
+
 	# запрос через manager django
 	top_costs = Costs.objects.filter(date_buy__year = current_year, date_buy__month = current_month)
 	context = {'top_costs': top_costs, 'total_sum' : total_sum[0]}
@@ -105,6 +106,7 @@ def get_costs_sample(request): # выборка расходов по датам
 	costs_sample_list = []
 	from_date = datetime.date(timezone.now().year,1,1)
 	due_date = timezone.now()
+
 	if request.method == 'POST':
 		form = InputDateForm(request.POST)
 		if form.is_valid():
@@ -113,7 +115,20 @@ def get_costs_sample(request): # выборка расходов по датам
 			costs_sample_list = Costs.objects.filter(date_buy__range = (from_date, due_date))
 	else:
 		form = InputDateForm()
-	context = {'form' : form, 'costs_sample_list': costs_sample_list if costs_sample_list else None, 'from_date':from_date, 'due_date':due_date}
+	#подсчет суммы расходов по выборке
+	with connection.cursor() as cursor:#используется менеджер контекста для закрытия соединения с БД без написания .close()
+		sql = '''
+		SELECT SUM (summa_buy)
+		FROM table_costs
+		WHERE date_buy BETWEEN {from_date} AND {due_date}
+		'''.format(
+			from_date=make_date_query_string(from_date),
+			due_date=make_date_query_string(due_date),
+			)
+		cursor.execute(sql)
+		total_sum = cursor.fetchone()
+
+	context = {'form' : form, 'costs_sample_list': costs_sample_list if costs_sample_list else None, 'from_date' : from_date, 'due_date' : due_date, 'total_sum' : total_sum[0]}
 	return render(request, 'table/costssample.html', context)
 
 @permission_required('table.change_costs', login_url='/table/')
