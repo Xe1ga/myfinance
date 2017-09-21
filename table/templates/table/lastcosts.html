@@ -17,6 +17,7 @@
 		<th>Тип расхода</th>
 		<th>Сумма</th>
 		<th>Примечание</th>
+		<th></th>
 	</tr>
 	{% for cost in top_costs %}
 	<tr>
@@ -24,6 +25,7 @@
 		<td>{{cost.type_of_buy}}</td>
 		<td>{{cost.summa_buy}}</td>
 		<td>{{cost.note}}</td>
+		<td bordercolor="white"><a href="{% url 'table:deletecost' cost.id %}">Удалить</a></td>
 	</tr>
 	{% endfor %} 
 </table>

@@ -1,0 +1,16 @@
+<table width="100%" bgcolor="#A5B0A9">
+    <tr>
+        <td> <<h1>Показания счетчиков</h1></td>
+        <td align="right" valign="top"> <a href="{% url 'table:auth_logout' %}">Выйти</a> </td>
+    </tr>
+</table>
+
+<a href="{% url 'table:main' %}">Вернуться на главную</a></br></br>
+<h3>Скопируйте текст в буфер обмена и отправьте на адрес comm.ch@yandex.ru</h3>
+<p>Собственник: Седов Виктор Валентинович</p>
+<p>Адрес: ул.С.Преминина, д.14, кв.213</p>
+<p>Холодная вода = {{meter.cold_water}}</p>
+<p>Горячая вода = {{meter.hot_water}}</p>
+<p>Электроэнергия = {{meter.electricity_apartment}}</p>
+<p>Электроэнергия подсоб.помещ. = {{meter.electricity_storeroom}}</p>
+<p>Телефон для связи:89535037106</p>

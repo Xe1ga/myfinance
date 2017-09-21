@@ -1,0 +1,34 @@
+<table width="100%" bgcolor="#A5B0A9">
+    <tr>
+        <td> <<h1>ФИНАНСЫ</h1></td>
+        <td align="right" valign="top"> <a href="{% url 'table:auth_logout' %}">Выйти</a> </td>
+    </tr>
+</table>
+
+
+<a href="{% url 'table:main' %}">На главную</a></br></br>
+<a href="{% url 'meters:addmetersdata' %}">Добавить показания счетчиков</a></br></br>
+<a href="{% url 'meters:texttosend' %}">Сформировать текст для отправки показаний</a></br></br>
+<table border="1" width="50%">
+<caption><b>Показания счетчиков в текущем году</b></caption>
+	<tr>
+		<th>Дата снятия показаний</th>
+		<th>Холодная вода</th>
+		<th>Горячая вода</th>
+		<th>Электроэнергия в квартире</th>
+		<th>Электроэнергия в подсобном помещении</th>
+		<th>Примечание</th>
+		<th></th>
+	</tr>
+	{% for meter in meters_current_year %}
+	<tr>
+		<td><a href="{% url 'meters:getchangemeter' meter.id %}">{{meter.date_meter|date:"d.m.Y"}}</a></td>
+		<td>{{meter.cold_water}}</td>
+		<td>{{meter.hot_water}}</td>
+		<td>{{meter.electricity_apartment}}</td>
+		<td>{{meter.electricity_storeroom}}</td>
+		<td>{{meter.note}}</td>
+		<td ><a href="{% url 'meters:deletemeter' meter.id %}">Удалить</a></td>
+	</tr>
+	{% endfor %} 
+</table>

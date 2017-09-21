@@ -12,6 +12,7 @@ urlpatterns = [
     url(r'^auth_logout/$', views.auth_logout, name='auth_logout'),
     # ex: /table/costlist/   таблица расходов за текущий месяц
     url(r'^costslist/$', views.current_month_expenses, name = 'current_month_expenses'),
+    url(r'^deletecost/(?P<cost_id>[0-9]+)/$', views.delete_cost, name = 'deletecost'),
     # ex: /table/addcost/   добавить расход
     url(r'^addcost/$', views.AddCostView.as_view(), name = 'addcost'),
     # ex: /table/costsample/   поиск по расходам

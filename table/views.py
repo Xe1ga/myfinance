@@ -8,7 +8,7 @@ from django.db import connection #модуль для обращения нап�
 from django.utils import timezone
 from django.views import generic
 from .forms import CostsForm, InputDateForm, TypeOfCostsForm, LoginForm
-from datetime import date
+from datetime import date, timedelta
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
@@ -60,7 +60,7 @@ def current_month_expenses(request): # расходы за текущий мес
 		WHERE date_buy BETWEEN {from_date} AND {due_date}
 		'''.format(
 			from_date=make_date_query_string(datetime.date(current_year,current_month,1)),
-			due_date=make_date_query_string(datetime.date(current_year,current_month,current_day)),
+			due_date=make_date_query_string(datetime.date(current_year,current_month,current_day+1)),
 			)
 		cursor.execute(sql)
 		total_sum = cursor.fetchone()
@@ -105,13 +105,15 @@ class AddTypeOfCostView(LoginRequiredMixin, PermissionRequiredMixin, generic.edi
 def get_costs_sample(request): # выборка расходов по датам
 	costs_sample_list = []
 	from_date = datetime.date(timezone.now().year,1,1)
-	due_date = timezone.now()
+	day = timedelta(days = 1)
+	due_date = timezone.now() + day
+
 
 	if request.method == 'POST':
 		form = InputDateForm(request.POST)
 		if form.is_valid():
 			from_date = form.cleaned_data['from_date']
-			due_date = form.cleaned_data['due_date']
+			due_date = form.cleaned_data['due_date'] + day
 			costs_sample_list = Costs.objects.filter(date_buy__range = (from_date, due_date))
 	else:
 		form = InputDateForm()
@@ -143,4 +145,10 @@ def get_change_cost(request, cost_id): # изменение конкретног
 		form = CostsForm(instance = cost) # создание формы для изменения существующего расхода
 		context = {'form' : form}
 		return render(request, 'table/addcost.html', context)
+
+@login_required(login_url='/table/')
+def delete_cost(request, cost_id):
+	cost = get_object_or_404(Costs, pk = cost_id)
+	cost.delete()
+	return HttpResponseRedirect(reverse('table:current_month_expenses', ))
 
