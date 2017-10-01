@@ -52,15 +52,17 @@ def current_month_expenses(request): # расходы за текущий мес
 	current_day = timezone.now().day
 	current_month = timezone.now().month 
 	current_year = timezone.now().year
+	day = timedelta(days = 1)
+	
 	# запрос напрямую к БД
 	with connection.cursor() as cursor:#используется менеджер контекста для закрытия соединения с БД без написания .close()
 		sql = '''
 		SELECT SUM (summa_buy)
 		FROM table_costs
-		WHERE date_buy BETWEEN {from_date} AND {due_date}
+		WHERE date_buy >= {from_date} AND  date_buy <= {due_date}
 		'''.format(
 			from_date=make_date_query_string(datetime.date(current_year,current_month,1)),
-			due_date=make_date_query_string(datetime.date(current_year,current_month,current_day+1)),
+			due_date=make_date_query_string(timezone.now() + day),
 			)
 		cursor.execute(sql)
 		total_sum = cursor.fetchone()
@@ -106,15 +108,15 @@ def get_costs_sample(request): # выборка расходов по датам
 	costs_sample_list = []
 	from_date = datetime.date(timezone.now().year,1,1)
 	day = timedelta(days = 1)
-	due_date = timezone.now() + day
+	due_date = timezone.now()
 
 
 	if request.method == 'POST':
 		form = InputDateForm(request.POST)
 		if form.is_valid():
 			from_date = form.cleaned_data['from_date']
-			due_date = form.cleaned_data['due_date'] + day
-			costs_sample_list = Costs.objects.filter(date_buy__range = (from_date, due_date))
+			due_date = form.cleaned_data['due_date']
+			costs_sample_list = Costs.objects.filter(date_buy__range = (from_date, due_date + day))
 	else:
 		form = InputDateForm()
 	#подсчет суммы расходов по выборке
@@ -122,16 +124,17 @@ def get_costs_sample(request): # выборка расходов по датам
 		sql = '''
 		SELECT SUM (summa_buy)
 		FROM table_costs
-		WHERE date_buy BETWEEN {from_date} AND {due_date}
+		WHERE date_buy >= {from_date} AND date_buy <= {due_date}
 		'''.format(
 			from_date=make_date_query_string(from_date),
-			due_date=make_date_query_string(due_date),
+			due_date=make_date_query_string(due_date + day),
 			)
 		cursor.execute(sql)
 		total_sum = cursor.fetchone()
 
 	context = {'form' : form, 'costs_sample_list': costs_sample_list if costs_sample_list else None, 'from_date' : from_date, 'due_date' : due_date, 'total_sum' : total_sum[0]}
 	return render(request, 'table/costssample.html', context)
+	print(due_date)
 
 @permission_required('table.change_costs', login_url='/table/')
 @login_required(login_url='/table/')
